@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dad Joke Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <p class="eyebrow">Dad Joke Generator</p>
+        <h1>Instantly generate a dad joke</h1>
+        <p class="lead">
+          Press the button to fetch a new joke, or copy the one you like. A fallback joke appears if the API is unavailable.
+        </p>
+      </section>
+
+      <section class="joke-card">
+        <div class="joke-output" id="joke">Press the button to start laughing.</div>
+        <div class="button-row">
+          <button id="newJoke" type="button">New Joke</button>
+          <button id="copyJoke" type="button">Copy Joke</button>
+        </div>
+        <p class="status" id="status"></p>
+        <p class="note">
+          Powered by <a href="https://icanhazdadjoke.com/" target="_blank" rel="noreferrer noopener">icanhazdadjoke.com</a>
+        </p>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
