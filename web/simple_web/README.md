@@ -1,10 +1,7 @@
 # VibeCoding
-1st day
+2nd Day
 
-update my life
+![screenshot1](screenshot_resume_full.png)
 
-why
-
-never
-
-![screenshot1] (screenshot_resume(1).png)
+Demo: https://mingewang.github.io/ai_vibe_coding/web/simple_web/
+Video: https://mingewang.github.io/ai_vibe_coding/web/simple_web/
