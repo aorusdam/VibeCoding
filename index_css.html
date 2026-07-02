@@ -92,6 +92,12 @@
       animation-name: slideInFromTop;
     }
 
+    li:nth-child(4) {
+      animation-delay: 1.5s;
+      font-family: 'Oswald', sans-serif;
+      animation-name: slideInFromBottom;
+    }
+
     a {
       display: block;
       color: var(--text);
@@ -173,6 +179,21 @@
       }
     }
 
+    @keyframes slideInFromBottom {
+      0% {
+        opacity: 0;
+        transform: translateY(80px);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     @keyframes fadeInText {
       from {
         opacity: 0;
@@ -189,6 +210,7 @@
     <ul>
       <li><a href="web/simple_web/">Simple Web</a></li>
       <li><a href="web2/dad-jokes/">Dad Jokes</a></li>
+      <li><a href="First%20Games/simple_game.html">First Games</a></li>
       <li><a href="index.html">Home</a></li>
     </ul>
   </div>
