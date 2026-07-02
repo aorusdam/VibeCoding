@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grand Order Lite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070b16;
+      --panel: rgba(16, 24, 43, 0.92);
+      --accent: #f7b731;
+      --accent-2: #6a5acd;
+      --text: #f8f7ff;
+      --muted: #a7b0c3;
+      --good: #5efc8d;
+      --bad: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #182545 0%, var(--bg) 60%);
+      padding: 24px;
+    }
+
+    .game {
+      max-width: 980px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 24px 28px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .servants {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .servant-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      text-align: left;
+    }
+
+    .servant-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .servant-card.active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .servant-card h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-family: 'Cinzel', serif;
+    }
+
+    .servant-card .class {
+      color: var(--accent);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stats {
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .battle-area {
+      display: grid;
+      gap: 14px;
+    }
+
+    .fighter {
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .fighter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .bar > div {
+      height: 100%;
+      border-radius: inherit;
+      transition: width 0.3s ease;
+    }
+
+    .hp { background: linear-gradient(90deg, #ff5f6d, #ffc371); }
+    .np { background: linear-gradient(90deg, #36d1dc, #5b86e5); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #ff8f00);
+      color: #111;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 6px 16px rgba(247,183,49,0.2);
+    }
+
+    button:hover { transform: translateY(-2px); }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .log {
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-entry {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .status.win { color: var(--good); }
+    .status.lose { color: var(--bad); }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 820px) {
+      .content { grid-template-columns: 1fr; }
+      .servants { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <header>
+      <h1>Grand Order Lite</h1>
+      <p class="subtitle">Choose a servant, command your turn, and survive the enemy's assault.</p>
+    </header>
+
+    <div class="content">
+      <div class="panel">
+        <div class="servants">
+          <button class="servant-card active" data-name="Saber" data-hp="120" data-atk="18" data-def="10" data-skill="Shield Bash" data-color="#f7b731">
+            <h3>Saber</h3>
+            <div class="class">Knight</div>
+            <div class="stats">HP 120<br/>ATK 18<br/>Skill: Guard + heal</div>
+          </button>
+          <button class="servant-card" data-name="Archer" data-hp="100" data-atk="20" data-def="8" data-skill="Precision Shot" data-color="#6a5acd">
+            <h3>Archer</h3>
+            <div class="class">Marksman</div>
+            <div class="stats">HP 100<br/>ATK 20<br/>Skill: Critical burst</div>
+          </button>
+          <button class="servant-card" data-name="Caster" data-hp="90" data-atk="15" data-def="12" data-skill="Mystic Rune" data-color="#5efc8d">
+            <h3>Caster</h3>
+            <div class="class">Mage</div>
+            <div class="stats">HP 90<br/>ATK 15<br/>Skill: Barrier + damage</div>
+          </button>
+        </div>
+
+        <div class="battle-area">
+          <div class="fighter" id="player-card">
+            <div class="fighter-header">
+              <span id="player-name">Saber</span>
+              <span id="player-class">Knight</span>
+            </div>
+            <div>HP</div>
+            <div class="bar"><div class="hp" id="player-hp-bar" style="width: 100%"></div></div>
+            <div style="margin-top: 8px;">Noble Phantasm</div>
+            <div class="bar"><div class="np" id="player-np-bar" style="width: 20%"></div></div>
+          </div>
+
+          <div class="fighter" id="enemy-card">
+            <div class="fighter-header">
+              <span>Enemy</span>
+              <span>Fate Beast</span>
+            </div>
+            <div>HP</div>
+            <div class="bar"><div class="hp" id="enemy-hp-bar" style="width: 100%"></div></div>
+          </div>
+
+          <div class="actions">
+            <button id="attack-btn">Attack</button>
+            <button id="skill-btn">Skill</button>
+            <button id="guard-btn">Guard</button>
+            <button id="np-btn">Noble Phantasm</button>
+          </div>
+
+          <div class="status" id="status">Choose your servant and begin the battle.</div>
+          <div class="hint">Tip: Skills change by servant and can turn the battle around.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin-top: 0; font-family: 'Cinzel', serif;">Battle Log</h3>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const servantCards = Array.from(document.querySelectorAll('.servant-card'));
+    const attackBtn = document.getElementById('attack-btn');
+    const skillBtn = document.getElementById('skill-btn');
+    const guardBtn = document.getElementById('guard-btn');
+    const npBtn = document.getElementById('np-btn');
+    const playerName = document.getElementById('player-name');
+    const playerClass = document.getElementById('player-class');
+    const playerHpBar = document.getElementById('player-hp-bar');
+    const playerNpBar = document.getElementById('player-np-bar');
+    const enemyHpBar = document.getElementById('enemy-hp-bar');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    let player = null;
+    let enemy = { name: 'Fate Beast', hp: 130, maxHp: 130, damage: 16 };
+    let battleOver = false;
+    let np = 20;
+
+    function resetBattle() {
+      battleOver = false;
+      enemy = { name: 'Fate Beast', hp: 130, maxHp: 130, damage: 16 };
+      np = 20;
+      updateBars();
+      statusEl.textContent = 'Choose your servant and begin the battle.';
+      statusEl.className = 'status';
+      logEl.innerHTML = '';
+      addLog('A new battle has begun.');
+      enableActions();
+    }
+
+    function addLog(message) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = message;
+      logEl.prepend(entry);
+    }
+
+    function setPlayer(servant) {
+      player = {
+        ...servant,
+        hp: servant.hp,
+        maxHp: servant.hp,
+        attack: servant.atk,
+        defense: servant.def,
+        skillName: servant.skill,
+        color: servant.color
+      };
+
+      playerName.textContent = player.name;
+      playerClass.textContent = player.skillName;
+      document.getElementById('player-card').style.borderColor = player.color;
+      resetBattle();
+    }
+
+    function updateBars() {
+      const playerPct = Math.max(0, Math.round((player.hp / player.maxHp) * 100));
+      const enemyPct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100));
+      playerHpBar.style.width = `${playerPct}%`;
+      playerNpBar.style.width = `${np}%`;
+      enemyHpBar.style.width = `${enemyPct}%`;
+    }
+
+    function enableActions() {
+      const active = !battleOver;
+      attackBtn.disabled = !active;
+      skillBtn.disabled = !active;
+      guardBtn.disabled = !active;
+      npBtn.disabled = !active || np < 100;
+    }
+
+    function endBattle(win) {
+      battleOver = true;
+      enableActions();
+      statusEl.textContent = win ? 'Victory! Your servant has triumphed.' : 'Defeat... Try another servant.';
+      statusEl.className = `status ${win ? 'win' : 'lose'}`;
+      addLog(win ? 'The enemy falls.' : 'The battle ends in defeat.');
+    }
+
+    function enemyTurn() {
+      if (battleOver) return;
+
+      let damage = enemy.damage;
+      if (Math.random() < 0.2) {
+        damage += 8;
+        addLog('The enemy lands a critical strike!');
+      }
+
+      const reduced = Math.max(1, damage - Math.floor(player.defense / 2));
+      player.hp -= reduced;
+      addLog(`Enemy attacks for ${reduced} damage.`);
+      updateBars();
+
+      if (player.hp <= 0) {
+        endBattle(false);
+      } else {
+        enableActions();
+      }
+    }
+
+    function playerAction(action) {
+      if (!player || battleOver) return;
+      enableActions();
+
+      let damage = 0;
+      let message = '';
+
+      switch (action) {
+        case 'attack':
+          damage = player.attack + Math.floor(Math.random() * 6);
+          enemy.hp -= damage;
+          np = Math.min(100, np + 12);
+          message = `${player.name} attacks for ${damage} damage.`;
+          break;
+        case 'skill':
+          if (player.name === 'Saber') {
+            player.hp = Math.min(player.maxHp, player.hp + 18);
+            damage = 10;
+            enemy.hp -= damage;
+            message = `${player.name} uses ${player.skillName} and restores 18 HP.`;
+          } else if (player.name === 'Archer') {
+            damage = player.attack + 10 + Math.floor(Math.random() * 4);
+            enemy.hp -= damage;
+            np = Math.min(100, np + 20);
+            message = `${player.name} unleashes a precise shot for ${damage} damage.`;
+          } else {
+            damage = 12;
+            enemy.hp -= damage;
+            player.hp = Math.min(player.maxHp, player.hp + 8);
+            np = Math.min(100, np + 10);
+            message = `${player.name} creates a barrier and strikes for ${damage} damage.`;
+          }
+          break;
+        case 'guard':
+          enemy.damage = 10;
+          np = Math.min(100, np + 8);
+          message = `${player.name} braces for impact and reduces the enemy's next hit.`;
+          break;
+        case 'np':
+          damage = 38 + Math.floor(Math.random() * 8);
+          enemy.hp -= damage;
+          np = 0;
+          message = `${player.name} unleashes a Noble Phantasm for ${damage} damage.`;
+          break;
+      }
+
+      addLog(message);
+      updateBars();
+
+      if (enemy.hp <= 0) {
+        endBattle(true);
+        return;
+      }
+
+      setTimeout(enemyTurn, 650);
+    }
+
+    servantCards.forEach(card => {
+      card.addEventListener('click', () => {
+        servantCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        setPlayer({
+          name: card.dataset.name,
+          hp: Number(card.dataset.hp),
+          atk: Number(card.dataset.atk),
+          def: Number(card.dataset.def),
+          skill: card.dataset.skill,
+          color: card.dataset.color
+        });
+      });
+    });
+
+    attackBtn.addEventListener('click', () => playerAction('attack'));
+    skillBtn.addEventListener('click', () => playerAction('skill'));
+    guardBtn.addEventListener('click', () => playerAction('guard'));
+    npBtn.addEventListener('click', () => playerAction('np'));
+
+    setPlayer({
+      name: 'Saber',
+      hp: 120,
+      atk: 18,
+      def: 10,
+      skill: 'Shield Bash',
+      color: '#f7b731'
+    });
+  </script>
+</body>
+</html>
