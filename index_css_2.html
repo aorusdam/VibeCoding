@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animated Project Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Playfair+Display:wght@600&family=Montserrat:wght@600&family=Roboto:wght@500&family=Pacifico&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --accent2: #f472b6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #020617, #1e293b);
+      color: var(--text);
+      font-family: 'Montserrat', sans-serif;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      width: min(700px, 100%);
+      padding: 2rem;
+      border-radius: 24px;
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.3);
+      animation: fadeInUp 1.2s ease-out;
+    }
+
+    h1 {
+      margin: 0 0 1.5rem;
+      text-align: center;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-family: 'Fredoka', sans-serif;
+      letter-spacing: 1px;
+      animation: titleFade 1.4s ease-out;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    li {
+      opacity: 0;
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
+      background: rgba(255,255,255,0.12);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    li:hover {
+      transform: translateY(-4px) scale(1.01);
+      background: rgba(255,255,255,0.18);
+    }
+
+    li:nth-child(1) {
+      animation: slideInLeft 0.9s ease forwards;
+      animation-delay: 0.2s;
+      font-family: 'Playfair Display', serif;
+    }
+
+    li:nth-child(2) {
+      animation: slideInRight 0.95s ease forwards;
+      animation-delay: 0.45s;
+      font-family: 'Pacifico', cursive;
+    }
+
+    li:nth-child(3) {
+      animation: slideInTop 1s ease forwards;
+      animation-delay: 0.7s;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    li:nth-child(4) {
+      animation: slideInBottom 1.05s ease forwards;
+      animation-delay: 0.95s;
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 1.1rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--accent);
+    }
+
+    @keyframes titleFade {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideInLeft {
+      0% { opacity: 0; transform: translateX(-120px); }
+      70% { opacity: 1; transform: translateX(10px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideInRight {
+      0% { opacity: 0; transform: translateX(140px); }
+      70% { opacity: 1; transform: translateX(-10px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideInTop {
+      0% { opacity: 0; transform: translateY(-70px); }
+      70% { opacity: 1; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideInBottom {
+      0% { opacity: 0; transform: translateY(70px); }
+      70% { opacity: 1; transform: translateY(-6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Animated Project Gallery</h1>
+    <ul>
+      <li><a href="web/simple_web/">Simple Web</a></li>
+      <li><a href="web2/dad-jokes/">Dad Jokes</a></li>
+      <li><a href="First%20Games/simple_game.html">First Games</a></li>
+      <li><a href="index.html">Back to Home</a></li>
+    </ul>
+  </div>
+</body>
+</html>
