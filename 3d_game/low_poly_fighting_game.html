@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Low-Poly 3D Fighting Game</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #0f172a, #020617 70%);
+        color: #f8fafc;
+      }
+
+      #game {
+        position: fixed;
+        inset: 0;
+      }
+
+      .hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 1rem;
+      }
+
+      .panel {
+        background: rgba(2, 6, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 0.8rem 1rem;
+        backdrop-filter: blur(10px);
+        width: min(340px, 92vw);
+      }
+
+      .fighter {
+        margin-bottom: 0.75rem;
+      }
+
+      .fighter:last-child {
+        margin-bottom: 0;
+      }
+
+      .fighter-name {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.04em;
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        width: 100%;
+        border-radius: inherit;
+        transition: width 0.15s ease;
+      }
+
+      .player-fill {
+        background: linear-gradient(90deg, #22c55e, #86efac);
+      }
+
+      .enemy-fill {
+        background: linear-gradient(90deg, #fb7185, #fda4af);
+      }
+
+      .controls {
+        align-self: flex-end;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+
+      .overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .overlay-card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 20px;
+        padding: 1.5rem 1.8rem;
+        text-align: center;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .overlay-card h1 {
+        margin: 0 0 0.6rem;
+        font-size: 2rem;
+      }
+
+      .overlay-card p {
+        margin: 0 0 0.8rem;
+        color: #cbd5e1;
+      }
+
+      .overlay-card button {
+        border: none;
+        border-radius: 999px;
+        padding: 0.7rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: linear-gradient(135deg, #38bdf8, #818cf8);
+        color: #020617;
+      }
+
+      .overlay-card button:hover {
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div class="hud">
+      <div class="panel">
+        <div class="fighter">
+          <div class="fighter-name"><span>Player</span><span id="playerHp">100</span></div>
+          <div class="bar"><div id="playerBar" class="fill player-fill"></div></div>
+        </div>
+        <div class="fighter">
+          <div class="fighter-name"><span>Drone Rival</span><span id="enemyHp">100</span></div>
+          <div class="bar"><div id="enemyBar" class="fill enemy-fill"></div></div>
+        </div>
+      </div>
+      <div class="panel controls">
+        Move: WASD<br />Attack: K<br />Special: L
+      </div>
+    </div>
+
+    <div id="overlay" class="overlay visible">
+      <div class="overlay-card">
+        <h1 id="overlayTitle">Low-Poly Arena</h1>
+        <p id="overlayText">Dodge, strike, and survive the drone rival.</p>
+        <button id="restartButton">Start Fight</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+      const container = document.getElementById('game');
+      const overlay = document.getElementById('overlay');
+      const overlayTitle = document.getElementById('overlayTitle');
+      const overlayText = document.getElementById('overlayText');
+      const restartButton = document.getElementById('restartButton');
+      const playerHpLabel = document.getElementById('playerHp');
+      const enemyHpLabel = document.getElementById('enemyHp');
+      const playerBar = document.getElementById('playerBar');
+      const enemyBar = document.getElementById('enemyBar');
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x020617);
+      scene.fog = new THREE.Fog(0x020617, 8, 28);
+
+      const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 7.5, 10);
+      camera.lookAt(0, 1.2, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0x9bb8ff, 1.1);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+      dirLight.position.set(6, 10, 4);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.set(1024, 1024);
+      scene.add(dirLight);
+
+      const rimLight = new THREE.PointLight(0x38bdf8, 12, 24, 2);
+      rimLight.position.set(-4, 4, -3);
+      scene.add(rimLight);
+
+      const floor = new THREE.Mesh(
+        new THREE.BoxGeometry(18, 0.4, 12),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.15, roughness: 0.9 })
+      );
+      floor.position.y = -0.2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(18, 18, 0x38bdf8, 0x1e293b);
+      grid.material.opacity = 0.45;
+      grid.material.transparent = true;
+      scene.add(grid);
+
+      const arenaRim = new THREE.Mesh(
+        new THREE.BoxGeometry(18.4, 0.6, 12.4),
+        new THREE.MeshBasicMaterial({ color: 0x1d4ed8, wireframe: true, transparent: true, opacity: 0.25 })
+      );
+      arenaRim.position.y = -0.1;
+      scene.add(arenaRim);
+
+      const pillars = [];
+      const pillarMaterial = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.4, roughness: 0.7 });
+      const pillarPositions = [
+        [-7.3, 0, -4.8], [7.3, 0, -4.8], [-7.3, 0, 4.8], [7.3, 0, 4.8],
+      ];
+
+      pillarPositions.forEach((pos) => {
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.4, 0.6), pillarMaterial);
+        pillar.position.set(pos[0], 1.2, pos[1]);
+        pillar.castShadow = true;
+        pillar.receiveShadow = true;
+        scene.add(pillar);
+        pillars.push(pillar);
+      });
+
+      const clock = new THREE.Clock();
+      const input = {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+        attack: false,
+        special: false,
+      };
+
+      const createCharacter = (color, isPlayer = false) => {
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const material = new THREE.MeshStandardMaterial({
+          color,
+          flatShading: true,
+          metalness: 0.2,
+          roughness: 0.7,
+        });
+
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), material);
+        body.position.y = 1.2;
+        body.castShadow = true;
+        body.receiveShadow = true;
+        group.add(body);
+
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.55), material);
+        head.position.y = 2.0;
+        head.castShadow = true;
+        group.add(head);
+
+        const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.9, 0.22), material);
+        leftArm.position.set(-0.55, 1.25, 0);
+        leftArm.castShadow = true;
+        group.add(leftArm);
+
+        const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.9, 0.22), material);
+        rightArm.position.set(0.55, 1.25, 0);
+        rightArm.castShadow = true;
+        group.add(rightArm);
+
+        const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.95, 0.24), material);
+        leftLeg.position.set(-0.2, 0.45, 0);
+        leftLeg.castShadow = true;
+        group.add(leftLeg);
+
+        const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.95, 0.24), material);
+        rightLeg.position.set(0.2, 0.45, 0);
+        rightLeg.castShadow = true;
+        group.add(rightLeg);
+
+        const sword = new THREE.Mesh(
+          new THREE.BoxGeometry(0.16, 1.1, 0.16),
+          new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0x5a2b00, emissiveIntensity: 0.4 })
+        );
+        sword.position.set(0.75, 1.2, 0.2);
+        sword.rotation.z = -0.8;
+        sword.castShadow = true;
+        sword.visible = false;
+        group.add(sword);
+
+        group.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        return {
+          group,
+          material,
+          sword,
+          hp: 100,
+          maxHp: 100,
+          alive: true,
+          attackTimer: 0,
+          attackCooldown: 0,
+          specialCooldown: 0,
+          hitTimer: 0,
+          isPlayer,
+          lastDirection: new THREE.Vector3(1, 0, 0),
+        };
+      };
+
+      const player = createCharacter(0x38bdf8, true);
+      player.group.position.set(-3, 0, 0);
+
+      const enemy = createCharacter(0xf43f5e, false);
+      enemy.group.position.set(3, 0, 0);
+
+      const playerHealth = { value: player.maxHp };
+      const enemyHealth = { value: enemy.maxHp };
+      let gameOver = false;
+
+      const setOverlay = (title, text, visible) => {
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        overlay.classList.toggle('visible', visible);
+      };
+
+      const updateHud = () => {
+        playerHpLabel.textContent = `${Math.max(0, Math.round(player.hp))}`;
+        enemyHpLabel.textContent = `${Math.max(0, Math.round(enemy.hp))}`;
+        playerBar.style.width = `${Math.max(0, player.hp)}%`;
+        enemyBar.style.width = `${Math.max(0, enemy.hp)}%`;
+      };
+
+      const startAttack = (fighter, kind) => {
+        if (!fighter.alive || fighter.attackCooldown > 0 || fighter.attackTimer > 0) return;
+        fighter.attackTimer = 0.2;
+        fighter.attackCooldown = kind === 'special' ? 0.9 : 0.45;
+        fighter.specialCooldown = kind === 'special' ? 0.9 : 0;
+        fighter.sword.visible = true;
+        fighter.attackKind = kind;
+      };
+
+      const applyDamage = (attacker, target, kind) => {
+        if (!target.alive) return;
+        const damage = kind === 'special' ? 24 : 14;
+        target.hp = Math.max(0, target.hp - damage);
+        target.hitTimer = 0.18;
+        target.material.color.setHex(kind === 'special' ? 0xfee2e2 : 0xfff59d);
+        const push = new THREE.Vector3().subVectors(target.group.position, attacker.group.position).normalize();
+        push.y = 0;
+        target.group.position.addScaledVector(push, kind === 'special' ? 0.6 : 0.28);
+        target.group.position.x = THREE.MathUtils.clamp(target.group.position.x, -7.5, 7.5);
+        target.group.position.z = THREE.MathUtils.clamp(target.group.position.z, -5, 5);
+        if (target.hp <= 0) {
+          target.alive = false;
+          target.group.rotation.z = -0.5;
+          target.group.position.y = -0.1;
+          gameOver = true;
+          setOverlay(attacker.isPlayer ? 'Victory!' : 'Defeat', attacker.isPlayer ? 'The drone has been stunned.' : 'Try again and keep your distance.', true);
+        }
+      };
+
+      const clampCharacter = (fighter) => {
+        fighter.group.position.x = THREE.MathUtils.clamp(fighter.group.position.x, -7.5, 7.5);
+        fighter.group.position.z = THREE.MathUtils.clamp(fighter.group.position.z, -5, 5);
+      };
+
+      const updateFighter = (fighter, delta) => {
+        if (!fighter.alive) return;
+        fighter.attackTimer = Math.max(0, fighter.attackTimer - delta);
+        fighter.attackCooldown = Math.max(0, fighter.attackCooldown - delta);
+        fighter.specialCooldown = Math.max(0, fighter.specialCooldown - delta);
+        fighter.hitTimer = Math.max(0, fighter.hitTimer - delta);
+
+        if (fighter.hitTimer <= 0) {
+          fighter.material.color.setHex(fighter.isPlayer ? 0x38bdf8 : 0xf43f5e);
+        }
+
+        if (fighter.attackTimer > 0) {
+          const swingProgress = 1 - fighter.attackTimer / 0.2;
+          fighter.sword.visible = true;
+          fighter.sword.rotation.z = fighter.attackKind === 'special' ? -1.1 + swingProgress * 1.35 : -0.8 + swingProgress * 1.1;
+          fighter.sword.position.x = fighter.attackKind === 'special' ? 0.95 : 0.75;
+          fighter.sword.position.y = 1.1 + swingProgress * 0.1;
+          if (swingProgress > 0.45) {
+            const target = fighter.isPlayer ? enemy : player;
+            const range = fighter.attackKind === 'special' ? 1.7 : 1.25;
+            if (target.alive && fighter.group.position.distanceTo(target.group.position) < range) {
+              applyDamage(fighter, target, fighter.attackKind);
+            }
+          }
+        } else {
+          fighter.sword.visible = false;
+        }
+      };
+
+      const handlePlayerMovement = (delta) => {
+        const move = new THREE.Vector3();
+        if (input.forward) move.z -= 1;
+        if (input.backward) move.z += 1;
+        if (input.left) move.x -= 1;
+        if (input.right) move.x += 1;
+
+        if (move.lengthSq() > 0) {
+          move.normalize();
+          player.group.position.addScaledVector(move, delta * 4.5);
+          player.lastDirection.set(move.x, 0, move.z);
+          if (player.lastDirection.lengthSq() > 0) {
+            player.lastDirection.normalize();
+            player.group.rotation.y = Math.atan2(player.lastDirection.x, player.lastDirection.z);
+          }
+          clampCharacter(player);
+        }
+      };
+
+      const handleEnemyAI = (delta) => {
+        if (!enemy.alive || !player.alive) return;
+        const deltaVec = new THREE.Vector3().subVectors(player.group.position, enemy.group.position);
+        const distance = deltaVec.length();
+        if (distance > 0.001) {
+          deltaVec.normalize();
+          if (distance > 1.25) {
+            enemy.group.position.addScaledVector(deltaVec, delta * 2.75);
+          }
+          enemy.group.rotation.y = Math.atan2(deltaVec.x, deltaVec.z);
+          if (distance < 1.35 && enemy.attackCooldown <= 0) {
+            startAttack(enemy, Math.random() > 0.35 ? 'light' : 'special');
+          }
+        }
+        clampCharacter(enemy);
+      };
+
+      window.addEventListener('keydown', (event) => {
+        switch (event.code) {
+          case 'KeyW':
+            input.forward = true;
+            break;
+          case 'KeyS':
+            input.backward = true;
+            break;
+          case 'KeyA':
+            input.left = true;
+            break;
+          case 'KeyD':
+            input.right = true;
+            break;
+          case 'KeyK':
+            if (!gameOver) {
+              input.attack = true;
+            }
+            break;
+          case 'KeyL':
+            if (!gameOver) {
+              input.special = true;
+            }
+            break;
+        }
+        if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyK', 'KeyL'].includes(event.code)) {
+          event.preventDefault();
+        }
+      });
+
+      window.addEventListener('keyup', (event) => {
+        switch (event.code) {
+          case 'KeyW':
+            input.forward = false;
+            break;
+          case 'KeyS':
+            input.backward = false;
+            break;
+          case 'KeyA':
+            input.left = false;
+            break;
+          case 'KeyD':
+            input.right = false;
+            break;
+        }
+      });
+
+      restartButton.addEventListener('click', () => {
+        player.hp = player.maxHp;
+        enemy.hp = enemy.maxHp;
+        player.alive = true;
+        enemy.alive = true;
+        player.group.position.set(-3, 0, 0);
+        enemy.group.position.set(3, 0, 0);
+        player.group.rotation.set(0, 0, 0);
+        enemy.group.rotation.set(0, 0, 0);
+        player.group.position.y = 0;
+        enemy.group.position.y = 0;
+        gameOver = false;
+        setOverlay('', '', false);
+        updateHud();
+      });
+
+      const animate = () => {
+        requestAnimationFrame(animate);
+        const delta = Math.min(clock.getDelta(), 0.033);
+
+        if (!gameOver) {
+          if (input.attack && player.attackCooldown <= 0) {
+            startAttack(player, 'light');
+            input.attack = false;
+          }
+          if (input.special && player.attackCooldown <= 0) {
+            startAttack(player, 'special');
+            input.special = false;
+          }
+          updateFighter(player, delta);
+          updateFighter(enemy, delta);
+          handlePlayerMovement(delta);
+          handleEnemyAI(delta);
+        }
+
+        updateHud();
+        renderer.render(scene, camera);
+      };
+
+      updateHud();
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
