@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Little Posts · Feed{% endblock %}
+{% block content %}
+  <section class="hero">
+    <p class="eyebrow">A small social blog</p>
+    <h1>Small thoughts, shared simply.</h1>
+    <p>Read the latest notes from the community, or add one of your own.</p>
+  </section>
+
+  {% if current_user %}
+    <section class="card composer" aria-labelledby="composer-title">
+      <div class="card-heading">
+        <h2 id="composer-title">Share something</h2>
+        <span>{{ current_user['username'] }}</span>
+      </div>
+      <form action="{{ url_for('create_post') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label class="sr-only" for="content">Your post</label>
+        <textarea id="content" name="content" maxlength="{{ max_post_length }}" placeholder="What’s on your mind?" required></textarea>
+        <div class="form-footer">
+          <span id="character-count" aria-live="polite">0 / {{ max_post_length }}</span>
+          <button class="button" type="submit">Post</button>
+        </div>
+      </form>
+    </section>
+  {% else %}
+    <section class="join-prompt card">
+      <p>Want to add to the conversation?</p>
+      <a class="button" href="{{ url_for('register') }}">Create an account</a>
+    </section>
+  {% endif %}
+
+  <section class="feed" aria-labelledby="feed-title">
+    <h2 id="feed-title">Latest posts</h2>
+    {% for post in posts %}
+      <article class="card post-card">
+        <div class="post-meta">
+          <span class="avatar" aria-hidden="true">{{ post['username'][0]|upper }}</span>
+          <div><strong>{{ post['username'] }}</strong><time datetime="{{ post['created_at'] }}">{{ post['created_at']|replace('T', ' ') }}</time></div>
+        </div>
+        <p>{{ post['content'] }}</p>
+      </article>
+    {% else %}
+      <div class="empty-state card"><p>No posts yet. Be the first to share a thought.</p></div>
+    {% endfor %}
+  </section>
+{% endblock %}

@@ -26,3 +26,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Local application data
+Blog/instance/
