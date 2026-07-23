@@ -1,0 +1,33 @@
+{
+  "pages": {
+    "/_not-found/page": [
+      "static/chunks/webpack-6f74d70d1168de5d.js",
+      "static/chunks/dbfa449c-e41824d2e517e219.js",
+      "static/chunks/350-a328409e2417c606.js",
+      "static/chunks/main-app-0c58b82db716a221.js",
+      "static/chunks/app/_not-found/page-fc2afe5c7baccdd5.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack-6f74d70d1168de5d.js",
+      "static/chunks/dbfa449c-e41824d2e517e219.js",
+      "static/chunks/350-a328409e2417c606.js",
+      "static/chunks/main-app-0c58b82db716a221.js",
+      "static/css/e8431dcfab70c5d8.css",
+      "static/chunks/app/layout-147117e3f0184bdd.js"
+    ],
+    "/api/lotm-chat/route": [
+      "static/chunks/webpack-6f74d70d1168de5d.js",
+      "static/chunks/dbfa449c-e41824d2e517e219.js",
+      "static/chunks/350-a328409e2417c606.js",
+      "static/chunks/main-app-0c58b82db716a221.js",
+      "static/chunks/app/api/lotm-chat/route-8ba91e4e9136c84b.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-6f74d70d1168de5d.js",
+      "static/chunks/dbfa449c-e41824d2e517e219.js",
+      "static/chunks/350-a328409e2417c606.js",
+      "static/chunks/main-app-0c58b82db716a221.js",
+      "static/chunks/app/page-f8e0828f90881edf.js"
+    ]
+  }
+}
